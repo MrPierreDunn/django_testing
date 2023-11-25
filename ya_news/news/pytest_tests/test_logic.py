@@ -1,3 +1,4 @@
+import random
 from http import HTTPStatus
 
 import pytest
@@ -31,7 +32,8 @@ def test_anonymous_user_cant_create_note(client, form_data_comment, news):
 
 def test_user_cant_use_bad_words(author_client, news):
     url = reverse('news:detail', args=(news.id,))
-    bad_words_data = {'text': f'Какой-то текст, {BAD_WORDS[0]}, еще текст'}
+    bad_word = random.choice(BAD_WORDS)
+    bad_words_data = {'text': f'Какой-то текст, {bad_word}, еще текст'}
     response = author_client.post(url, data=bad_words_data)
     assertFormError(response, 'form', 'text', errors=WARNING,)
     assert Comment.objects.count() == 0
@@ -53,6 +55,14 @@ def test_user_cant_delete_comment_of_another_user(admin_client, comment):
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
+@pytest.mark.django_db
+def test_anonimous_user_cant_delete_comment_of_another_user(client, comment):
+    delete_url = reverse('news:delete', args=(comment.id,))
+    response = client.delete(delete_url)
+    assert Comment.objects.count() == 1
+    assert response.status_code == 302
+
+
 def test_author_can_edit_comment(author_client, form_data_comment,
                                  comment, news):
     news_url = reverse('news:detail', args=(news.id,))
@@ -69,5 +79,18 @@ def test_user_cant_edit_comment_of_another_user(admin_client,
     edit_url = reverse('news:edit', args=(comment.id,))
     response = admin_client.post(edit_url, form_data_comment)
     assert response.status_code == HTTPStatus.NOT_FOUND
+    comment.refresh_from_db()
+    assert comment.text == comment.text
+
+
+@pytest.mark.django_db
+def test_anonimous_user_cant_edit_comment_of_another_user(client,
+                                                          form_data_comment,
+                                                          comment):
+    edit_url = reverse('news:edit', args=(comment.id,))
+    response = client.post(edit_url, form_data_comment)
+    login_url = reverse('users:login')
+    expected_url = f'{login_url}?next={edit_url}'
+    assertRedirects(response, expected_url)
     comment.refresh_from_db()
     assert comment.text == comment.text

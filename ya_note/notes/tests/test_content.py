@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -22,28 +24,24 @@ class TestCommentEditDelete(TestCase):
             text='Текст 2',
             author=cls.reader
         )
+        cls.client_author = Client()
+        cls.client_author.force_login(cls.author)
 
     def test_note_to_context(self):
-        client = Client()
-        client.force_login(self.author)
-        response = client.get(reverse('notes:list'))
-        self.assertEqual(response.status_code, 200)
+        response = self.client_author.get(reverse('notes:list'))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIn('object_list', response.context)
         notes_in_context = response.context['object_list']
         self.assertIn(self.note_author, notes_in_context)
 
     def test_notes_of_different_user(self):
-        client = Client()
-        client.force_login(self.author)
-        response = client.get(reverse('notes:list'))
-        self.assertEqual(response.status_code, 200)
+        response = self.client_author.get(reverse('notes:list'))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIn('object_list', response.context)
         notes_author = response.context['object_list']
         self.assertNotIn(self.note_reader, notes_author)
 
     def test_note_create_form(self):
-        client = Client()
-        client.force_login(self.author)
-        response = client.get(reverse('notes:add'))
-        self.assertEqual(response.status_code, 200)
+        response = self.client_author.get(reverse('notes:add'))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIsInstance(response.context['form'], NoteForm)
