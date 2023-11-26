@@ -21,7 +21,9 @@ def test_news_order(client, setup_news):
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
     object_list = response.context['object_list']
-    sorted_object_list = sorted(object_list, key=lambda news: news.date, reverse=True)
+    sorted_object_list = sorted(object_list,
+                                key=lambda news: news.date,
+                                reverse=True)
     assert list(object_list) == sorted_object_list
 
 
