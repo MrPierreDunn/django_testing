@@ -33,6 +33,7 @@ class TestNoteCreation(TestCase):
 
     def test_user_can_create_note(self):
         response = self.auth_client.post(self.url, data=self.form_data)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertRedirects(response, '/done/')
         note_exists = Note.objects.filter(title='Заголовок').exists()
         self.assertTrue(note_exists)

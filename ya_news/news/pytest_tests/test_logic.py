@@ -24,6 +24,7 @@ def test_user_can_create_comment(author_client, author,
 def test_anonymous_user_cant_create_note(client, form_data_comment, news):
     url = reverse('news:detail', args=(news.id,))
     response = client.post(url, data=form_data_comment)
+    assert response.status_code == HTTPStatus.FOUND
     login_url = reverse('users:login')
     expected_url = f'{login_url}?next={url}'
     assertRedirects(response, expected_url)
@@ -60,7 +61,7 @@ def test_anonimous_user_cant_delete_comment_of_another_user(client, comment):
     delete_url = reverse('news:delete', args=(comment.id,))
     response = client.delete(delete_url)
     assert Comment.objects.count() == 1
-    assert response.status_code == 302
+    assert response.status_code == HTTPStatus.FOUND
 
 
 def test_author_can_edit_comment(author_client, form_data_comment,
