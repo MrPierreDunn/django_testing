@@ -25,11 +25,16 @@ class TestNoteCreation(TestCase):
             'slug': 'test_slug',
             'author': cls.author,
         }
+        cls.notes = Note.objects.create(title='Test title',
+                                        text='Test text',
+                                        slug='test',
+                                        author=cls.author)
 
     def test_anonymous_user_cant_create_note(self):
-        self.client.post(self.url, data=self.form_data)
+        response = self.client.post(self.url, data=self.form_data)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
         note_count = Note.objects.count()
-        self.assertEqual(note_count, 0)
+        self.assertEqual(note_count, 1)
 
     def test_user_can_create_note(self):
         response = self.auth_client.post(self.url, data=self.form_data)
@@ -46,11 +51,11 @@ class TestNoteCreation(TestCase):
         same_slug = {
             'title': 'Тестовый заголовок',
             'text': 'Тестовый текст',
-            'slug': 'test_slug',
+            'slug': 'test',
             'author': self.author,
         }
-        response = self.auth_client.post(self.url, data=self.form_data)
         response = self.auth_client.post(self.url, data=same_slug)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertFormError(
             response,
             form='form',

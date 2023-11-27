@@ -36,6 +36,7 @@ def test_user_cant_use_bad_words(author_client, news):
     bad_word = random.choice(BAD_WORDS)
     bad_words_data = {'text': f'Какой-то текст, {bad_word}, еще текст'}
     response = author_client.post(url, data=bad_words_data)
+    assert response.status_code == HTTPStatus.OK
     assertFormError(response, 'form', 'text', errors=WARNING,)
     assert Comment.objects.count() == 0
 
@@ -80,8 +81,8 @@ def test_user_cant_edit_comment_of_another_user(admin_client,
     edit_url = reverse('news:edit', args=(comment.id,))
     response = admin_client.post(edit_url, form_data_comment)
     assert response.status_code == HTTPStatus.NOT_FOUND
-    comment.refresh_from_db()
-    assert comment.text == comment.text
+    updated_comment = Comment.objects.get(id=comment.id)
+    assert updated_comment.text == comment.text
 
 
 @pytest.mark.django_db
@@ -93,5 +94,5 @@ def test_anonimous_user_cant_edit_comment_of_another_user(client,
     login_url = reverse('users:login')
     expected_url = f'{login_url}?next={edit_url}'
     assertRedirects(response, expected_url)
-    comment.refresh_from_db()
-    assert comment.text == comment.text
+    updated_comment = Comment.objects.get(id=comment.id)
+    assert updated_comment.text == comment.text
