@@ -25,10 +25,12 @@ class TestNoteCreation(TestCase):
             'slug': 'test_slug',
             'author': cls.author,
         }
-        cls.notes = Note.objects.create(title='Test title',
-                                        text='Test text',
-                                        slug='test',
-                                        author=cls.author)
+        cls.notes = Note.objects.create(
+            title='Test title',
+            text='Test text',
+            slug='test',
+            author=cls.author
+        )
 
     def test_anonymous_user_cant_create_note(self):
         response = self.client.post(self.url, data=self.form_data)
@@ -83,9 +85,11 @@ class TestCommentEditDelete(TestCase):
     def setUpTestData(cls):
         cls.author = User.objects.create(username='testauthor')
         cls.reader = User.objects.create(username='testreader')
-        cls.notes = Note.objects.create(title='Заголовок',
-                                        text='Текст',
-                                        author=cls.author)
+        cls.notes = Note.objects.create(
+            title='Заголовок',
+            text='Текст',
+            author=cls.author
+        )
 
     def test_notes_availability_for_edit_and_delete(self):
         users_statuses = (
